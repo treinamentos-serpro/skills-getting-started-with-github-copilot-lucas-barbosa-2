@@ -48,7 +48,36 @@ document.addEventListener("DOMContentLoaded", () => {
           const participantsList = document.createElement("ul");
           details.participants.forEach((participant) => {
             const participantItem = document.createElement("li");
-            participantItem.textContent = participant;
+            const participantEmail = document.createElement("span");
+            participantEmail.textContent = participant;
+            participantItem.appendChild(participantEmail);
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-participant";
+            removeButton.setAttribute("aria-label", `Remover ${participant} de ${name}`);
+            removeButton.title = "Remover participante";
+            removeButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3" /></svg>';
+            removeButton.addEventListener("click", async () => {
+              try {
+                const response = await fetch(
+                  `/activities/${encodeURIComponent(name)}/signup?email=${encodeURIComponent(participant)}`,
+                  { method: "DELETE" }
+                );
+                const result = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(result.detail || "Não foi possível remover o participante.");
+                }
+
+                await fetchActivities();
+              } catch (error) {
+                messageDiv.textContent = error.message || "Não foi possível remover o participante.";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+            });
+            participantItem.appendChild(removeButton);
             participantsList.appendChild(participantItem);
           });
           participantsSection.appendChild(participantsList);
